@@ -1,0 +1,150 @@
+version: '3.8'
+
+services:
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: swiftlogistics-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: swift
+      RABBITMQ_DEFAULT_PASS: logistics123
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - swift-network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: swiftlogistics-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: swiftuser
+      POSTGRES_PASSWORD: swiftpass
+      POSTGRES_DB: swiftlogistics
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swiftuser -d swiftlogistics"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - swift-network
+
+  # CMS Service (SOAP/XML) - Python Flask
+  cms-service:
+    build:
+      context: ./cms-service
+      dockerfile: Dockerfile
+    container_name: swiftlogistics-cms
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://swiftuser:swiftpass@postgres:5432/swiftlogistics
+      RABBITMQ_URL: amqp://swift:logistics123@rabbitmq:5672/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - swift-network
+
+  # ROS Service (REST/JSON) - Node.js Express
+  ros-service:
+    build:
+      context: ./ros-service
+      dockerfile: Dockerfile
+    container_name: swiftlogistics-ros
+    ports:
+      - "8002:8002"
+    environment:
+      RABBITMQ_URL: amqp://swift:logistics123@rabbitmq:5672/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - swift-network
+
+  # WMS Service (TCP/Messaging) - Python
+  wms-service:
+    build:
+      context: ./wms-service
+      dockerfile: Dockerfile
+    container_name: swiftlogistics-wms
+    ports:
+      - "8003:8003"
+      - "9000:9000"
+    environment:
+      DATABASE_URL: postgresql://swiftuser:swiftpass@postgres:5432/swiftlogistics
+      RABBITMQ_URL: amqp://swift:logistics123@rabbitmq:5672/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - swift-network
+
+  # API Gateway - Node.js with WebSocket
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: swiftlogistics-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      CMS_URL: http://cms-service:8001
+      ROS_URL: http://ros-service:8002
+      WMS_URL: http://wms-service:8003
+      RABBITMQ_URL: amqp://swift:logistics123@rabbitmq:5672/
+      JWT_SECRET: swiftlogistics-secret-key-2026
+    depends_on:
+      - cms-service
+      - ros-service
+      - wms-service
+    networks:
+      - swift-network
+
+  # Client Portal - Nginx serving static files
+  client-portal:
+    build:
+      context: ./client-portal
+      dockerfile: Dockerfile
+    container_name: swiftlogistics-client-portal
+    ports:
+      - "8080:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - swift-network
+
+  # Driver App - Nginx serving static files
+  driver-app:
+    build:
+      context: ./driver-app
+      dockerfile: Dockerfile
+    container_name: swiftlogistics-driver-app
+    ports:
+      - "8081:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - swift-network
+
+networks:
+  swift-network:
+    driver: bridge
+
+volumes:
+  postgres-data:

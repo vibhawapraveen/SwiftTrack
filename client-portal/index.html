@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftTrack - Client Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="login-page" class="page active">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <i class="fas fa-shipping-fast logo-icon"></i>
+                    <h1>SwiftTrack</h1>
+                    <p>Client Portal</p>
+                </div>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="email">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input type="email" id="email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <input type="password" id="password" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                </form>
+                <div class="demo-credentials">
+                    <p><strong>Demo Credentials:</strong></p>
+                    <p>Email: techmart@example.com</p>
+                    <p>Password: password123</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboard-page" class="page">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <i class="fas fa-shipping-fast logo-icon"></i>
+                <h1>SwiftTrack</h1>
+            </div>
+            <div class="header-right">
+                <div class="connection-status" id="connection-status">
+                    <i class="fas fa-circle"></i>
+                    <span>Connecting...</span>
+                </div>
+                <div class="user-info" id="user-info">
+                    <i class="fas fa-building"></i>
+                    <span id="company-name">Company</span>
+                </div>
+                <button class="btn btn-outline" id="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="total-orders">0</h3>
+                        <p>Total Orders</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon pending">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="pending-orders">0</h3>
+                        <p>Pending</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon in-transit">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="in-transit-orders">0</h3>
+                        <p>In Transit</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon delivered">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="delivered-orders">0</h3>
+                        <p>Delivered</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-bar">
+                <button class="btn btn-primary" id="new-order-btn">
+                    <i class="fas fa-plus"></i> New Order
+                </button>
+                <button class="btn btn-outline" id="refresh-btn">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-list"></i> Recent Orders</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Pickup Address</th>
+                                    <th>Delivery Address</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body">
+                                <tr>
+                                    <td colspan="7" class="empty-state">
+                                        <i class="fas fa-inbox"></i>
+                                        <p>No orders yet. Create your first order!</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-bell"></i> Real-time Updates</h2>
+                </div>
+                <div class="card-body">
+                    <div id="notifications-list" class="notifications-list">
+                        <div class="notification-item">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Waiting for updates...</span>
+                            <small>Just now</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Order Modal -->
+    <div id="order-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus-circle"></i> Create New Order</h2>
+                <button class="close-btn" id="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="order-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pickup-address">
+                            <i class="fas fa-map-marker-alt"></i> Pickup Address
+                        </label>
+                        <input type="text" id="pickup-address" placeholder="Enter pickup address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="delivery-address">
+                            <i class="fas fa-flag-checkered"></i> Delivery Address
+                        </label>
+                        <input type="text" id="delivery-address" placeholder="Enter delivery address" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pickup-lat">Pickup Latitude</label>
+                        <input type="number" id="pickup-lat" step="any" placeholder="6.9271" value="6.9271">
+                    </div>
+                    <div class="form-group">
+                        <label for="pickup-lng">Pickup Longitude</label>
+                        <input type="number" id="pickup-lng" step="any" placeholder="79.8612" value="79.8612">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="delivery-lat">Delivery Latitude</label>
+                        <input type="number" id="delivery-lat" step="any" placeholder="6.9344" value="6.9344">
+                    </div>
+                    <div class="form-group">
+                        <label for="delivery-lng">Delivery Longitude</label>
+                        <input type="number" id="delivery-lng" step="any" placeholder="79.8428" value="79.8428">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="package-weight">
+                            <i class="fas fa-weight"></i> Package Weight (kg)
+                        </label>
+                        <input type="number" id="package-weight" step="0.1" placeholder="1.5" value="1.0">
+                    </div>
+                    <div class="form-group">
+                        <label for="package-dimensions">
+                            <i class="fas fa-box"></i> Dimensions (LxWxH cm)
+                        </label>
+                        <input type="text" id="package-dimensions" placeholder="30x20x15" value="30x20x15">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="priority">
+                        <i class="fas fa-exclamation-circle"></i> Priority
+                    </label>
+                    <select id="priority">
+                        <option value="normal">Normal</option>
+                        <option value="high">High Priority</option>
+                        <option value="express">Express</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" id="cancel-order">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Submit Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-info-circle"></i> Order Details</h2>
+                <button class="close-btn" id="close-details">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="order-details" id="order-details-content">
+                <!-- Content populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
